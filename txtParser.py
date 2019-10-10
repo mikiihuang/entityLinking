@@ -4,64 +4,63 @@ import subprocess
 import json
 
 def createCurlRequest(body):
-    jsonStr1 = '''{
-             "id": "string",
-             "instanceAlignments": [
-                 {
-                 "alignments": [
-                    {
-                      "sourceTextEnd": 0,
-                      "sourceTextStart": 0,
-                      "targetTextEnd": 0,
-                      "targetTextStart": 0
-                    }
-                  ],
-                  "confidence": 0,
-                  "sourceLanguage": "string",
-                  "targetLanguage": "string"
-                }
-             ],
-             "instances": [
-                {
-                  "body":"'''
-    jsonStr2 = '''
-                  ",
-                    "metadata": {
-                    "date": "string",
-                    "language": "en",
-                    "originalLanguage": "en",
-                    "summary": "something",
-                    "tags": ["string"],
-                    "tokenizedText": [
-                      {
-                        "tokens": [
-                          {
-                            "offset": 0,
-                            "sourceDocument": {
-                              "id": "string",
-                              "language": "string"
-                            },
-                            "token": "string"
-                          }
-                        ]
-                      }
-                    ],
-                    "topics": ["string"]
-                  },
-                "title": "string"
+    request1 = '''curl -X POST --header "Content-Type: application/json" --header "Accept: application/json" -d "{
+  \\"id\\": \\"string\\",
+  \\"instanceAlignments\\": [
+    {
+      \\"alignments\\": [
+        {
+          \\"sourceTextEnd\\": 0,
+          \\"sourceTextStart\\": 0,
+          \\"targetTextEnd\\": 0,
+          \\"targetTextStart\\": 0
+        }
+      ],
+      \\"confidence\\": 0,
+      \\"sourceLanguage\\": \\"string\\",
+      \\"targetLanguage\\": \\"string\\"
+    }
+  ],
+  \\"instances\\": [
+    {
+      \\"body\\":'''
+    request2 = '''
+        \\"metadata\\": {
+        \\"date\\": \\"string\\",
+        \\"language\\": \\"en\\",
+        \\"originalLanguage\\": \\"en\\",
+        \\"summary\\": \\"something\\",
+        \\"tags\\": [
+          \\"string\\"
+        ],
+        \\"tokenizedText\\": [
+          {
+            \\"tokens\\": [
+              {
+                \\"offset\\": 0,
+                \\"sourceDocument\\": {
+                  \\"id\\": \\"string\\",
+                  \\"language\\": \\"string\\"
+                },
+                \\"token\\": \\"string\\"
               }
-            ],
-          "source": {
-            "type": "string",
-            "url": "string"
+            ]
           }
-       }'''
-    jsonStr = jsonStr1 + body + jsonStr2
-    jsonStr = jsonStr.replace('"', '\\"')
-    jsonStr = '"' + jsonStr + '"'
+        ],
+        \\"topics\\": [
+          \\"string\\"
+        ]
+      },
+      \\"title\\": \\"string\\"
+    }
+  ],
+  \\"source\\": {
+    \\"type\\": \\"string\\",
+    \\"url\\": \\"string\\"
+  }
+}" "http://localhost:5001/EntityTagging/api/v2.0/processDocument?applyCoreference=true&applyEntityLinking=true"'''
 
-    request = 'curl -X POST --header "Content-Type: application/json" --header "Accept: application/json" -d ' + jsonStr + ' "http://localhost:5001/EntityTagging/api/v2.0/processDocument?applyCoreference=true&applyEntityLinking=true"'
-    print(request)
+    request = request1 + '\\"' + body.replace('"', '\\"')  + '\\",' + request2
     return request
 
 # curlAndRecordResponse:
@@ -71,7 +70,7 @@ def curlAndRecordResponse(body, responseFile):
 
     # requires python 3.5+
     result = subprocess.run(request, stdout=subprocess.PIPE, shell=True)
-    responseFile.write(result.stdout.decode("utf-8") + "\n")
+    responseFile.write(result.stdout.decode("utf-8") + "\\n")
 
 def main():
 
@@ -93,9 +92,11 @@ def main():
     for doc in docs:
         no = doc.find("DOCNO").text
         hl = doc.find("HL").text
+        hl = " ".join(hl.split()) + "."
         # ln = doc.find("LN").text  # now dealing with 88
         text = doc.find("TEXT").text
         text = " ".join(text.split())
+
 
         # Process headline
         hls = [x.strip() for x in hl.split("----")]
